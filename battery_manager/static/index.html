@@ -6,6 +6,14 @@
     <title>Battery control</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
+        input[type="text"], select {
+            font-family: Arial, sans-serif; /* Imposta il font */
+            font-size: 20px;  /* Imposta la dimensione del testo */
+            padding: 5px; /* Aggiunge spazio interno per una migliore leggibilità */
+            border: 1px solid #000; /* Bordo per visibilità */
+            border-radius: 5px; /* Angoli arrotondati */
+            background-color: #fff; /* Sfondo bianco */
+        }
         .data-box { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
         .button-send { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
         .text-send { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
@@ -15,6 +23,7 @@
             fetch("/data")
                 .then(response => response.json())
                 .then(data => {
+                    document.getElementById("nominal_voltage").innerText = data.tensione + " V";
                     document.getElementById("voltage").innerText = data.tensione + " V";
                     document.getElementById("current").innerText = data.corrente + " A";
                     document.getElementById("voltage_min").innerText = data.tensione_min + " V"|| "-- V";
@@ -26,7 +35,7 @@
         setInterval(aggiornaDati, 100);
 
         function inviaValoreTensione(valore) {
-            fetch('/salva_valore', {
+            fetch('/save_battery_param', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -42,7 +51,7 @@
         }
         
         function inviaValoreCorrente(valore) {
-            fetch('/salva_valore', {
+            fetch('/save_battery_param', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -61,19 +70,32 @@
 </head>
 <body>
     <h1>Battery control system</h1>
-    <div class="data-box">Tensione attuale: <span id="voltage">-- °C</span></div>
-    <div class="data-box">Corrente attuale: <span id="current">-- %</span></div>
+    <div class="data-box">Tensione nominale: <span id="nominal_voltage">-- V</span></div>
+    <div class="data-box">Tensione attuale: <span id="voltage">-- V</span></div>
+    <div class="data-box">Corrente attuale: <span id="current">-- A</span></div>
     <div class="data-box">Limite tensione minima: <span id="voltage_min">-- V</span></div>
     <div class="data-box">Limite corrente massima: <span id="current_max">-- A</span></div>
 
     <form class="text-send" id="voltageForm">
         Tensione minima: <input type="text" id="minVoltageValue">
-        <button class="button-send" type="button" onclick="inviaValoreTensione(document.getElementById('minVoltageValue').value)">Imposta tensione minima</button>
+        <button class="button-send" type="button" onclick="inviaValoreTensione(document.getElementById('minVoltageValue').value)">Imposta</button>
     </form> 
 
     <form class="text-send" id="currentForm">
         Corrente massima: <input type="text" id="maxCurrentValue">
-        <button class="button-send" type="button" onclick="inviaValoreCorrente(document.getElementById('maxCurrentValue').value)">Imposta corrente massima</button>
+        <button class="button-send" type="button" onclick="inviaValoreCorrente(document.getElementById('maxCurrentValue').value)">Imposta</button>
+    </form>
+    
+    <form class="text-send" id="typeForm">
+        <label for="battery_voltage">Tensione batteria:</label>
+        <select id="battery_voltage">
+            <option value="" selected disabled>-- Seleziona --</option>
+            <option value="6">6V</option>
+            <option value="12">12V</option>
+            <option value="24">24V</option>
+        </select>
+
+        <button class="button-send" onclick="saveBatterySettings()">Imposta</button>
     </form>
     
 </body>

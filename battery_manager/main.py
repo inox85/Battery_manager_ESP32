@@ -22,7 +22,6 @@ ap.config(essid=SSID, password=PASSWORD)
 while not ap.active():
     time.sleep(1)
 
-
 print("Access Point attivo! IP:", ap.ifconfig()[0])
 
 # Variabili globali
@@ -64,21 +63,20 @@ def get_data(request):
     return data, 200, {'Content-Type': 'application/json'}
 
 
-@server.post('/salva_valore')
-def salva_valore(request):
+@server.post('/save_battery_param')
+def save_battery_param(request):
     print(request.body.decode())
     json_data = ujson.loads(request.body.decode())
     print(json_data)
     
-    try:
-        
+    try:       
         for key, value in json_data.items():
            print(f"{key}: {value}")
            print("Salvataggio limite di tensione...")
            config.update_config("battery", key, value)
            print("OK")
            return f"Impostazione {key} avvenuta correttamente", 400
-#
+
     except Exception as e:
          return f"Errore salva valore: {e}", 400    
 

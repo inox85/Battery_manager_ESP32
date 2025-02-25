@@ -1,1 +1,1 @@
-{"wifi": {"ssid": "ESP32-ServerAP", "password": "12345678"}, "battery": {"current_limit": "20", "voltage_limit": "12.5"}}
+{"wifi": {"ssid": "ESP32-ServerAP", "password": "12345678"}, "battery": {"current_limit": "12", "voltage_limit": "12"}}
