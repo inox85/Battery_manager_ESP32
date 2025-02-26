@@ -23,11 +23,11 @@
             fetch("/data")
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("nominal_voltage").innerText = data.tensione + " V";
-                    document.getElementById("voltage").innerText = data.tensione + " V";
-                    document.getElementById("current").innerText = data.corrente + " A";
-                    document.getElementById("voltage_min").innerText = data.tensione_min + " V"|| "-- V";
-                    document.getElementById("current_max").innerText = data.corrente_max + " A"|| "-- V";
+                    document.getElementById("nominal_voltage").innerText = data.nominal_voltage + " V";
+                    document.getElementById("voltage").innerText = data.actual_voltage + " V";
+                    document.getElementById("current").innerText = data.actual_current + " A";
+                    document.getElementById("voltage_min").innerText = data.voltage_limit + " V"|| "-- V";
+                    document.getElementById("current_max").innerText = data.current_limit + " A"|| "-- V";
                 })
                 .catch(error => console.error("Errore nel fetch:", error));
         }
@@ -66,6 +66,32 @@
             .catch(error => console.error("Errore:", error));
         }
         
+
+        function inviaValoreTensioneNominale(selectedValue) {
+
+            if (selectedValue) {
+                // Valore selezionato, procedi con l'invio o altre operazioni
+                fetch('/save_battery_param', { // Sostituisci con il tuo endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nominal_voltage: selectedValue })
+                })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    document.getElementById("maxCurrentValue").value = ""; // Pulisce l'input
+                })
+                 .catch(error => console.error("Errore:", error));
+                } 
+                else 
+                {
+                    // Nessun valore selezionato, mostra un alert
+                    alert("Seleziona una tensione valida.");
+                }
+        }
+        
     </script>
 </head>
 <body>
@@ -87,15 +113,15 @@
     </form>
     
     <form class="text-send" id="typeForm">
-        <label for="battery_voltage">Tensione batteria:</label>
-        <select id="battery_voltage">
+        <label for="nominalVoltage">Tensione batteria:</label>
+        <select id="nominalVoltage">
             <option value="" selected disabled>-- Seleziona --</option>
             <option value="6">6V</option>
             <option value="12">12V</option>
             <option value="24">24V</option>
         </select>
 
-        <button class="button-send" onclick="saveBatterySettings()">Imposta</button>
+        <button class="button-send" onclick="inviaValoreTensioneNominale(document.getElementById('nominalVoltage').value)">Imposta</button>
     </form>
     
 </body>

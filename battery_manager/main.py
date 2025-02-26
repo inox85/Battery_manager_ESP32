@@ -55,10 +55,11 @@ def index(request):
 @server.route('/data')
 def get_data(request):
     data = {
-        "tensione": round(voltage, 2),
-        "corrente": round(current, 2),
-        "tensione_min": config.get_value("battery", "voltage_limit"),
-        "corrente_max": config.get_value("battery", "current_limit")
+        "nominal_voltage": config.get_value("battery", "nominal_voltage"),
+        "actual_voltage": round(voltage, 2),
+        "actual_current": round(current, 2),
+        "voltage_limit": config.get_value("battery", "voltage_limit"),
+        "current_limit": config.get_value("battery", "current_limit")
     }
     return data, 200, {'Content-Type': 'application/json'}
 
@@ -73,7 +74,7 @@ def save_battery_param(request):
         for key, value in json_data.items():
            print(f"{key}: {value}")
            print("Salvataggio limite di tensione...")
-           config.update_config("battery", key, value)
+           config.update_config("battery", key, float(value))
            print("OK")
            return f"Impostazione {key} avvenuta correttamente", 400
 
