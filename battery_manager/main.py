@@ -1,41 +1,28 @@
-import network
-import socket
-import ujson
 import time
 from machine import Pin, SPI
 import _thread
 from config_manager import ConfigManager
-from microdot import Microdot, Response, send_file
+from access_point import AccessPoint
 import random
+import network
+from battery_manager import BatteryManager
+from microdot import Microdot, Response, send_file
 
-config = ConfigManager('config.json')
+config_manager = ConfigManager('config.json')
 
-SSID = config.get_value("wifi", "ssid")
-PASSWORD = config.get_value("wifi", "password")
+access_point = AccessPoint(config_manager)
 
-ap = network.WLAN(network.AP_IF)
-ap.active(False)
-time.sleep(1)
-ap.active(True)
-ap.config(essid=SSID, password=PASSWORD)
 
-while not ap.active():
-    time.sleep(1)
-
-print("Access Point attivo! IP:", ap.ifconfig()[0])
-
-# Variabili globali
 voltage = 12.0
 current = 0.5
-min_voltage = config.get_value("battery", "voltage_limit")
-max_current = config.get_value("battery", "current_limit")
-# Funzione per aggiornare la voltageeratura (thread separato)
-
+min_voltage = config_manager.get_value("battery", "voltage_limit")
+max_current = config_manager.get_value("battery", "current_limit")
 
 def aggiorna_dati():
     global voltage
     global current
     while True:
+        #print(ap.status('stations'))
         voltage = round(random.uniform(11.9, 12.1), 2)
         current = round(random.uniform(0.45, 0.55), 2)  # 0.5-3A
         time.sleep_ms(10)
@@ -55,11 +42,11 @@ def index(request):
 @server.route('/data')
 def get_data(request):
     data = {
-        "nominal_voltage": config.get_value("battery", "nominal_voltage"),
+        "nominal_voltage": config_manager.get_value("battery", "nominal_voltage"),
         "actual_voltage": round(voltage, 2),
         "actual_current": round(current, 2),
-        "voltage_limit": config.get_value("battery", "voltage_limit"),
-        "current_limit": config.get_value("battery", "current_limit")
+        "voltage_limit": config_manager.get_value("battery", "voltage_limit"),
+        "current_limit": config_manager.get_value("battery", "current_limit")
     }
     return data, 200, {'Content-Type': 'application/json'}
 
@@ -74,7 +61,7 @@ def save_battery_param(request):
         for key, value in json_data.items():
            print(f"{key}: {value}")
            print("Salvataggio limite di tensione...")
-           config.update_config("battery", key, float(value))
+           config_manager.update_config("battery", key, float(value))
            print("OK")
            return f"Impostazione {key} avvenuta correttamente", 400
 
