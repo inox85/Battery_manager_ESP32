@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery control</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .data-box { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
+        .button-send { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
+        .text-send { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
+        canvas { margin-top: 20px; max-width: 90%; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chart;
+
+        function aggiornaDati() {
+            fetch("/data")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("voltage").innerText = data.tensione + " V";
+                    document.getElementById("current").innerText = data.corrente + " A";
+                    document.getElementById("voltage_min").innerText = data.tensione_min + " V" || "-- V";
+                    document.getElementById("current_max").innerText = data.corrente_max + " A" || "-- A";
+
+                    aggiornaGrafico(data.tensione, data.corrente);
+                })
+                .catch(error => console.error("Errore nel fetch:", error));
+        }
+
+        setInterval(aggiornaDati, 1000);
+
+        function inviaValoreTensione(valore) {
+            fetch('/salva_valore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ voltage_limit: valore })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById("minVoltageValue").value = "";
+            })
+            .catch(error => console.error("Errore:", error));
+        }
+        
+        function inviaValoreCorrente(valore) {
+            fetch('/salva_valore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_limit: valore })
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                document.getElementById("maxCurrentValue").value = "";
+            })
+            .catch(error => console.error("Errore:", error));
+        }
+
+        function inizializzaGrafico() {
+            const ctx = document.getElementById("realtimeChart").getContext("2d");
+            chart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Voltage (V)",
+                            data: [],
+                            borderColor: "blue",
+                            yAxisID: "y-left"
+                        },
+                        {
+                            label: "Current (A)",
+                            data: [],
+                            borderColor: "red",
+                            yAxisID: "y-right"
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        "y-left": {
+                            type: "linear",
+                            position: "left",
+                            title: { display: true, text: "Voltage (V)" },
+                            ticks: { color: "blue" }
+                        },
+                        "y-right": {
+                            type: "linear",
+                            position: "right",
+                            title: { display: true, text: "Current (A)" },
+                            ticks: { color: "red" }
+                        }
+                    }
+                }
+            });
+        }
+
+        function aggiornaGrafico(voltage, current) {
+            const timestamp = new Date().toLocaleTimeString();
+
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+            }
+
+            chart.data.labels.push(timestamp);
+            chart.data.datasets[0].data.push(voltage);
+            chart.data.datasets[1].data.push(current);
+
+            chart.update();
+        }
+
+        window.onload = inizializzaGrafico;
+    </script>
+</head>
+<body>
+    <h1>Battery control system</h1>
+    <div class="data-box">Tensione attuale: <span id="voltage">-- V</span></div>
+    <div class="data-box">Corrente attuale: <span id="current">-- A</span></div>
+    <div class="data-box">Limite tensione minima: <span id="voltage_min">-- V</span></div>
+    <div class="data-box">Limite corrente massima: <span id="current_max">-- A</span></div>
+
+    <form class="text-send" id="voltageForm">
+        Tensione minima: <input type="text" id="minVoltageValue">
+        <button class="button-send" type="button" onclick="inviaValoreTensione(document.getElementById('minVoltageValue').value)">Imposta tensione minima</button>
+    </form> 
+
+    <form class="text-send" id="currentForm">
+        Corrente massima: <input type="text" id="maxCurrentValue">
+        <button class="button-send" type="button" onclick="inviaValoreCorrente(document.getElementById('maxCurrentValue').value)">Imposta corrente massima</button>
+    </form>
+
+    <canvas id="realtimeChart"></canvas>
+</body>
+</html>
+
+
