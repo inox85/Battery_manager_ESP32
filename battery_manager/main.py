@@ -7,27 +7,15 @@ import random
 import network
 from battery_manager import BatteryManager
 from microdot import Microdot, Response, send_file
+import ujson
 
 config_manager = ConfigManager('config.json')
 
 access_point = AccessPoint(config_manager)
 
+battery_manager = BatteryManager(config_manager)
 
-voltage = 12.0
-current = 0.5
-min_voltage = config_manager.get_value("battery", "voltage_limit")
-max_current = config_manager.get_value("battery", "current_limit")
-
-def aggiorna_dati():
-    global voltage
-    global current
-    while True:
-        #print(ap.status('stations'))
-        voltage = round(random.uniform(11.9, 12.1), 2)
-        current = round(random.uniform(0.45, 0.55), 2)  # 0.5-3A
-        time.sleep_ms(10)
-
-_thread.start_new_thread(aggiorna_dati, ())
+_thread.start_new_thread(battery_manager.aggiorna_dati, ())
 
 server = Microdot()
 
@@ -41,14 +29,18 @@ def index(request):
 
 @server.route('/data')
 def get_data(request):
-    data = {
-        "nominal_voltage": config_manager.get_value("battery", "nominal_voltage"),
-        "actual_voltage": round(voltage, 2),
-        "actual_current": round(current, 2),
-        "voltage_limit": config_manager.get_value("battery", "voltage_limit"),
-        "current_limit": config_manager.get_value("battery", "current_limit")
-    }
-    return data, 200, {'Content-Type': 'application/json'}
+    try:
+        data = {
+            "nominal_voltage": config_manager.get_value("battery", "nominal_voltage"),
+            "actual_voltage": round(battery_manager.current_voltage, 2),
+            "actual_current": round(battery_manager.current_current, 2),
+            "voltage_limit": config_manager.get_value("battery", "voltage_limit"),
+            "current_limit": config_manager.get_value("battery", "current_limit")
+        }
+        return data, 200, {'Content-Type': 'application/json'}
+    except Exception as e:
+        return f"Errore recupero valori: {e}", 400    
+    
 
 
 @server.post('/save_battery_param')
