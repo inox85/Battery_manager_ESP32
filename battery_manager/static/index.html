@@ -3,20 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battery control</title>
+    <title>Battery Control System</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        input[type="text"], select {
-            font-family: Arial, sans-serif; /* Imposta il font */
-            font-size: 20px;  /* Imposta la dimensione del testo */
-            padding: 5px; /* Aggiunge spazio interno per una migliore leggibilità */
-            border: 1px solid #000; /* Bordo per visibilità */
-            border-radius: 5px; /* Angoli arrotondati */
-            background-color: #fff; /* Sfondo bianco */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
         }
-        .data-box { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
-        .button-send { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
-        .text-send { font-size: 24px; padding: 10px; margin-top: 20px; border: 1px solid #000; border-radius: 10px; background-color: #f0f0f0; }
+        
+        .navbar {
+            background: linear-gradient(to right, #2196F3, #00b0ff);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        
+        .data-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .data-box {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .data-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .data-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .data-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        
+        .nominal-voltage { color: #4CAF50; }
+        .actual-voltage { color: #2196F3; }
+        .actual-current { color: #9C27B0; }
+        .voltage-min { color: #FF9800; }
+        .current-max { color: #F44336; }
+        
+        .form-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .form-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2196F3;
+        }
+        
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 70%;
+            margin-right: 10px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(to right, #2196F3, #00b0ff);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #0b7dda, #009be5);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        label {
+            min-width: 150px;
+            display: inline-block;
+        }
+        
+        @media (max-width: 600px) {
+            .data-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            input, select {
+                width: 100%;
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+            
+            label {
+                margin-bottom: 5px;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
     </style>
     <script>
         function aggiornaDati() {
@@ -32,7 +171,7 @@
                 .catch(error => console.error("Errore nel fetch:", error));
         }
 
-        setInterval(aggiornaDati, 100);
+        setInterval(aggiornaDati, 1000);
 
         function inviaValoreTensione(valore) {
             fetch('/save_battery_param', {
@@ -40,12 +179,12 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ voltage_limit: valore }) // Converte in JSON
+                body: JSON.stringify({ voltage_limit: valore })
             })
             .then(response => response.text())
             .then(data => {
                 alert(data);
-                document.getElementById("minVoltageValue").value = ""; // Pulisce l'input
+                document.getElementById("minVoltageValue").value = "";
             })
             .catch(error => console.error("Errore:", error));
         }
@@ -56,22 +195,19 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ current_limit: valore }) // Converte in JSON
+                body: JSON.stringify({ current_limit: valore })
             })
             .then(response => response.text())
             .then(data => {
                 alert(data);
-                document.getElementById("maxCurrentValue").value = ""; // Pulisce l'input
+                document.getElementById("maxCurrentValue").value = "";
             })
             .catch(error => console.error("Errore:", error));
         }
         
-
         function inviaValoreTensioneNominale(selectedValue) {
-
             if (selectedValue) {
-                // Valore selezionato, procedi con l'invio o altre operazioni
-                fetch('/save_battery_param', { // Sostituisci con il tuo endpoint
+                fetch('/save_battery_param', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -81,48 +217,79 @@
                 .then(response => response.text())
                 .then(data => {
                     alert(data);
-                    document.getElementById("maxCurrentValue").value = ""; // Pulisce l'input
                 })
-                 .catch(error => console.error("Errore:", error));
-                } 
-                else 
-                {
-                    // Nessun valore selezionato, mostra un alert
-                    alert("Seleziona una tensione valida.");
-                }
+                .catch(error => console.error("Errore:", error));
+            } else {
+                alert("Seleziona una tensione valida.");
+            }
         }
-        
     </script>
 </head>
 <body>
-    <h1>Battery control system</h1>
-    <div class="data-box">Tensione nominale: <span id="nominal_voltage">-- V</span></div>
-    <div class="data-box">Tensione attuale: <span id="voltage">-- V</span></div>
-    <div class="data-box">Corrente attuale: <span id="current">-- A</span></div>
-    <div class="data-box">Limite tensione minima: <span id="voltage_min">-- V</span></div>
-    <div class="data-box">Limite corrente massima: <span id="current_max">-- A</span></div>
-
-    <form class="text-send" id="voltageForm">
-        Tensione minima: <input type="text" id="minVoltageValue">
-        <button class="button-send" type="button" onclick="inviaValoreTensione(document.getElementById('minVoltageValue').value)">Imposta</button>
-    </form> 
-
-    <form class="text-send" id="currentForm">
-        Corrente massima: <input type="text" id="maxCurrentValue">
-        <button class="button-send" type="button" onclick="inviaValoreCorrente(document.getElementById('maxCurrentValue').value)">Imposta</button>
-    </form>
+    <div class="navbar">
+        <h1>Battery Control System</h1>
+    </div>
     
-    <form class="text-send" id="typeForm">
-        <label for="nominalVoltage">Tensione batteria:</label>
-        <select id="nominalVoltage">
-            <option value="" selected disabled>-- Seleziona --</option>
-            <option value="6">6V</option>
-            <option value="12">12V</option>
-            <option value="24">24V</option>
-        </select>
-
-        <button class="button-send" onclick="inviaValoreTensioneNominale(document.getElementById('nominalVoltage').value)">Imposta</button>
-    </form>
-    
+    <div class="container">
+        <div class="data-container">
+            <div class="data-box">
+                <div class="data-label">Tensione nominale</div>
+                <div class="data-value nominal-voltage" id="nominal_voltage">-- V</div>
+            </div>
+            
+            <div class="data-box">
+                <div class="data-label">Tensione attuale</div>
+                <div class="data-value actual-voltage" id="voltage">-- V</div>
+            </div>
+            
+            <div class="data-box">
+                <div class="data-label">Corrente attuale</div>
+                <div class="data-value actual-current" id="current">-- A</div>
+            </div>
+            
+            <div class="data-box">
+                <div class="data-label">Limite tensione minima</div>
+                <div class="data-value voltage-min" id="voltage_min">-- V</div>
+            </div>
+            
+            <div class="data-box">
+                <div class="data-label">Limite corrente massima</div>
+                <div class="data-value current-max" id="current_max">-- A</div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-title">Impostazioni batteria</div>
+            
+            <form id="voltageForm" onsubmit="event.preventDefault();">
+                <div class="form-row">
+                    <label for="minVoltageValue">Tensione minima:</label>
+                    <input type="text" id="minVoltageValue" placeholder="Inserisci valore">
+                    <button type="button" onclick="inviaValoreTensione(document.getElementById('minVoltageValue').value)">Imposta</button>
+                </div>
+            </form>
+            
+            <form id="currentForm" onsubmit="event.preventDefault();">
+                <div class="form-row">
+                    <label for="maxCurrentValue">Corrente massima:</label>
+                    <input type="text" id="maxCurrentValue" placeholder="Inserisci valore">
+                    <button type="button" onclick="inviaValoreCorrente(document.getElementById('maxCurrentValue').value)">Imposta</button>
+                </div>
+            </form>
+            
+            <form id="typeForm" onsubmit="event.preventDefault();">
+                <div class="form-row">
+                    <label for="nominalVoltage">Tensione batteria:</label>
+                    <select id="nominalVoltage">
+                        <option value="" selected disabled>-- Seleziona --</option>
+                        <option value="6">6V</option>
+                        <option value="12">12V</option>
+                        <option value="24">24V</option>
+                    </select>
+                    <button type="button" onclick="inviaValoreTensioneNominale(document.getElementById('nominalVoltage').value)">Imposta</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

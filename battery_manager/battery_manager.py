@@ -15,4 +15,4 @@ class BatteryManager:
             #print(ap.status('stations'))
             self.current_voltage = round(random.uniform(11.9, 12.1), 2)
             self.current_current = round(random.uniform(0.45, 0.55), 2)  # 0.5-3A
-            time.sleep_ms(10)
+            time.sleep_ms(100)
