@@ -159,6 +159,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
     </style>
     <script>
+
         function aggiornaDati() {
             fetch("/data")
                 .then(response => response.json())
@@ -207,6 +208,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 alert("Seleziona una tensione valida.");
             }
         }
+        
     </script>
 </head>
 <body>
