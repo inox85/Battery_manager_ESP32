@@ -29,6 +29,8 @@ void setup() {
       Serial.println(adc_chars->vref);
   }
 
+  delay(1000);
+
   // Configurazione dell'ADC
   adc1_config_width(ADC_WIDTH);
   adc1_config_channel_atten(ADC_CHANNEL, ADC_ATTEN);
