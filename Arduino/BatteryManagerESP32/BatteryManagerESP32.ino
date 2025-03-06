@@ -4,7 +4,7 @@
 #include <ArduinoJson.h>
 #include "Battery.h"
 #include "AccessPoint.h"
-#include "PreferencesManager.h"
+
 
 AccessPoint accessPoint;
 
@@ -17,18 +17,6 @@ void setup()
 
   accessPoint.startServer();
 
-  Serial.println("Qui");
-
-  initPreferences(false);
-
-  saveString("Saluto", "Ciao");
-
-  endPreferences();
-
-  String text = getString("Saluto", "None");
-
-  Serial.println(text);
-  Serial.println("Ciaone");
   
 }
 
