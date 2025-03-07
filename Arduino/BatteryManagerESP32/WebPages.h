@@ -213,7 +213,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 </head>
 <body>
     <div class="navbar">
-        <h1>Battery Control System</h1>
+        <h1>LDV</h1>
     </div>
     
     <div class="container">

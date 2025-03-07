@@ -4,6 +4,7 @@
 #include "AccessPoint.h"
 #include "Params.h"
 #include "WebPages.h"
+#include "Battery.h"
 
 AsyncWebServer server(80);
 
@@ -20,7 +21,7 @@ void AccessPoint::activate()
   String chipIdStr = String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
 
   // Crea l'SSID con il chipId
-  String ssid = "BM_"+ chipIdStr;
+  String ssid = "LDV _"+ chipIdStr;
 
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); // Configura l'AP 
   WiFi.softAP(ssid, "12345678");
@@ -41,11 +42,11 @@ void AccessPoint::startServer(){
 
   server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request) {
       
-      String json = "{ \"nominal_voltage\":" + String(12) + 
-                    ", \"actual_voltage\":"  + String(12.5) + 
-                    ", \"actual_current\":"  + String(0.9) + 
-                    ", \"voltage_limit\":"   + String(11) + 
-                    ", \"current_limit\":"   + String(2) + "}"; 
+      String json = "{ \"nominal_voltage\":" + String(Battery::getInstance()->getNominalVoltage()) + 
+                    ", \"actual_voltage\":"  + String(Battery::getInstance()->getVoltageValue()) + 
+                    ", \"actual_current\":"  + String(Battery::getInstance()->getCurrentValue()) + 
+                    ", \"voltage_limit\":"   + String(Battery::getInstance()->getVoltageLimit()) + 
+                    ", \"current_limit\":"   + String(Battery::getInstance()->getCurrentLimit()) + "}"; 
                     
       request->send(200, "application/json", json);
   });
@@ -58,10 +59,7 @@ void AccessPoint::startServer(){
           String voltageLimitStr = request->getParam("voltage_limit")->value();
           float voltageLimit = voltageLimitStr.toFloat();
 
-          Serial.print("Limite di tensione ricevuto (GET): ");
-          Serial.println(voltageLimit);
-
-          // Usa voltageLimit come necessario
+          Battery::getInstance() -> setVoltageLimit(voltageLimit);
 
           request->send(200, "text/plain", "Valore di tensione ricevuto e salvato.");
         }
@@ -70,10 +68,7 @@ void AccessPoint::startServer(){
           String currentLimitStr = request->getParam("current_limit")->value();
           float currentLimit = currentLimitStr.toFloat();
 
-          Serial.print("Limite di corrente ricevuto (GET): ");
-          Serial.println(currentLimit);
-
-          // Usa voltageLimit come necessario
+          Battery::getInstance() -> setCurrentLimit(currentLimit);
 
           request->send(200, "text/plain", "Valore di corrente ricevuto e salvato.");
         }
@@ -82,10 +77,7 @@ void AccessPoint::startServer(){
           String nominalVoltageStr = request->getParam("nominal_voltage")->value();
           float nominalVoltage = nominalVoltageStr.toFloat();
 
-          Serial.print("Limite di tensione nominale ricevuto (GET): ");
-          Serial.println(nominalVoltage);
-
-          // Usa voltageLimit come necessario
+          Battery::getInstance() -> setNominalVoltage(nominalVoltage);
 
           request->send(200, "text/plain", "Valore di tensione nominale ricevuto e salvato.");
         } 

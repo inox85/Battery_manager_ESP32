@@ -7,18 +7,34 @@ class Battery
 {
   private:
 
-  float current_voltage = 0.0F;
-  float current_current = 0.0F;
+    static Battery* instance;
+    Battery();
 
-  float current_limit = 0.0F;
-  float voltage_limit = 0.0F;
+    float nominalVoltage = 0.0F;
+
+    float currentVoltage = 0.0F;
+    float currentCurrent = 0.0F;
+
+    float currentLimit = 0.0F;
+    float voltageLimit = 0.0F;
 
   public:
-    Battery();
+
+    static Battery* getInstance();
 
     float getCurrentValue();
     float getVoltageValue();
-  
+
+    void setCurrentLimit(float value);
+    void setVoltageLimit(float value);
+    float getCurrentLimit();
+    float getVoltageLimit();
+
+    void setNominalVoltage(float value);
+    float getNominalVoltage();
+
+    void monitoringRoutine();
+    
   };
 
 #endif 

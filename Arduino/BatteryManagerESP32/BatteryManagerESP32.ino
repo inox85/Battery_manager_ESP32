@@ -4,6 +4,8 @@
 #include <ArduinoJson.h>
 #include "Battery.h"
 #include "AccessPoint.h"
+#include "Settings.h"
+#include "Battery.h"
 
 
 AccessPoint accessPoint;
@@ -17,13 +19,10 @@ void setup()
 
   accessPoint.startServer();
 
-  
 }
-
 
 void loop() 
 {
-
-
+  Battery::getInstance()->monitoringRoutine();
 }
 

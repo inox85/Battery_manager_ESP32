@@ -18,6 +18,7 @@ class Settings {
 
     void writeString(const char* key, const String& value);
     String readString(const char* key, const String& defaultValue = "");
+    
 };
 
 #endif
