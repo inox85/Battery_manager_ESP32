@@ -5,6 +5,7 @@
 #include "Battery.h"
 #include "AccessPoint.h"
 
+
 AccessPoint accessPoint;
 
 void setup() 
@@ -16,12 +17,13 @@ void setup()
 
   accessPoint.startServer();
 
+  
 }
 
 
 void loop() 
 {
-  
+
 
 }
 
