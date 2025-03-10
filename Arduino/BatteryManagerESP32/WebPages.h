@@ -1,3 +1,259 @@
+
+
+const char login_html[] PROGMEM = R"rawliteral(
+  <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Battery Control System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+        
+        .login-title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2196F3;
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(to right, #2196F3, #00b0ff);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.2s, transform 0.1s;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #0b7dda, #009be5);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 class="login-title">Login</h2>
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Accedi</button>
+        </form>
+    </div>
+</body>
+</html>
+)rawliteral";
+
+
+
+const char admin_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibrazione Tensione - Battery Control System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(to right, #2196F3, #00b0ff);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .admin-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .admin-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2196F3;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 70%;
+            margin-right: 10px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+        }
+
+        button {
+            background: linear-gradient(to right, #2196F3, #00b0ff);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #0b7dda, #009be5);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        label {
+            min-width: 150px;
+            display: inline-block;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            input, select {
+                width: 100%;
+                margin-bottom: 10px;
+                margin-right: 0;
+            }
+
+            label {
+                margin-bottom: 5px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+    <script>
+        function inviaValoreCalibrazione(valore) {
+            fetch(`/calibrate_voltage?calibration_value=${valore}`)
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    document.getElementById("calibrationValue").value = ""; // Pulisce il campo di input
+                })
+                .catch(error => console.error("Errore:", error));
+        }
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <h1>LDV - Calibrazione Tensione</h1>
+    </div>
+
+    <div class="container">
+        <div class="admin-section">
+            <div class="admin-title">Calibrazione Tensione</div>
+
+            <form id="calibrationForm" onsubmit="event.preventDefault();">
+                <div class="form-row">
+                    <label for="calibrationValue">Valore di calibrazione:</label>
+                    <input type="number" id="calibrationValue" placeholder="Inserisci valore">
+                    <button type="button" onclick="inviaValoreCalibrazione(document.getElementById('calibrationValue').value)">Calibra</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+)rawliteral";
+
+
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="it">
@@ -280,3 +536,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 </body>
 </html>
 )rawliteral";
+
+
+
+

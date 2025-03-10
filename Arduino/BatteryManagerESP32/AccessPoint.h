@@ -16,6 +16,8 @@ class AccessPoint
     
     void handleSaveBatteryParam(AsyncWebServerRequest *request);
 
+    static String processor(const String& var);
+
 };
 
 #endif 
