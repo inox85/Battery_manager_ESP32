@@ -34,7 +34,7 @@ void AccessPoint::activate()
   String chipIdStr = String((uint32_t)(chipId >> 32), HEX) + String((uint32_t)chipId, HEX);
 
   // Crea l'SSID con il chipId
-  String ssid = "LDV _"+ chipIdStr;
+  String ssid = "LDV_"+ chipIdStr;
 
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); // Configura l'AP 
   WiFi.softAP(ssid, "12345678");
