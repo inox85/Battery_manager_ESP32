@@ -18,7 +18,7 @@ class Battery
     float currentLimit = 0.0F;
     float voltageLimit = 0.0F;
 
-    int16_t Vref = 0;
+    uint32_t Vref = 0;
 
   public:
 

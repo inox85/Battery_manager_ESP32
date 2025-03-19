@@ -71,7 +71,7 @@ void Battery::setParamsADC()
   adc_chars = (esp_adc_cal_characteristics_t *) calloc(1, sizeof(esp_adc_cal_characteristics_t));
   
   // Caratterizzazione dell'ADC: controlla se esistono dati calibrati negli eFuse
-  esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH, ESP_ADC_CAL_VAL_EFUSE_VREF, adc_chars);
+  esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH, 1100, adc_chars);
 
   Vref = adc_chars->vref;
   
@@ -80,10 +80,10 @@ void Battery::setParamsADC()
       
   } 
   else if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
-      Serial.print("Two Point calibration: ");
+      Serial.print("Two Point calibration Vref: ");
   } 
   else {
-      Serial.print("Default calibration: ");
+      Serial.print("Default calibration Vref: ");
   }
 
   Serial.println(Vref);
