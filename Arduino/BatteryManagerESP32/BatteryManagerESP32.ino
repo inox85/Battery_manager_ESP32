@@ -7,6 +7,8 @@ void setup()
 {
 
   Serial.begin(115200);
+
+  Battery::getInstance()->setParamsADC();
   
   accessPoint.activate();
 

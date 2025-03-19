@@ -1,13 +1,13 @@
-#include <Filters.h>
+#include <driver/adc.h>
+#include <esp_adc_cal.h>
 #include "PINs.h"
 #include "Battery.h"
 #include "Params.h"
 #include "Settings.h"
 
-FilterOnePole voltageFilter(LOWPASS, VOLTAGE_FILTER_FREQ);
-FilterOnePole currentFilter(LOWPASS, CURRENT_FILTER_FREQ);
-
 Battery* Battery::instance = nullptr;
+
+esp_adc_cal_characteristics_t *adc_chars;
 
 Battery::Battery() 
 {
@@ -28,12 +28,12 @@ Battery* Battery::getInstance() {
 
 float Battery::getCurrentValue()
 {
-  return 1.1F;
+  return currentCurrent;
 }
 
 float Battery::getVoltageValue()
 {
-  return 12.5F;
+  return currentVoltage;
 }
 
 void Battery::setVoltageLimit(float value)
@@ -61,6 +61,39 @@ void Battery::setNominalVoltage(float value)
     Serial.println(this->nominalVoltage);
 }
 
+void Battery::setParamsADC()
+{
+  adc_chars = (esp_adc_cal_characteristics_t *) calloc(1, sizeof(esp_adc_cal_characteristics_t));
+  
+  // Caratterizzazione dell'ADC: controlla se esistono dati calibrati negli eFuse
+  esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH, ESP_ADC_CAL_VAL_EFUSE_VREF, adc_chars);
+
+  Vref = adc_chars->vref;
+  
+  if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
+      Serial.print("eFuse Vref: ");
+      Serial.println(Vref);
+  } 
+  else if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
+      Serial.print("Two Point calibration: ");
+      Serial.println(Vref);
+  } 
+  else {
+      Serial.print("Default calibration: ");
+      Serial.println(Vref);
+  }
+
+  // Configurazione dell'ADC
+  adc1_config_width(ADC_WIDTH);
+  adc1_config_channel_atten(BATTERY_VOLTAGE_PIN, ADC_ATTEN);
+  adc1_config_channel_atten(BATTERY_CURRENT_PIN, ADC_ATTEN);
+}
+
+int Battery::getVref()
+{
+  return this->Vref;
+}
+
 float Battery::getNominalVoltage()
 {
   return this->nominalVoltage;
@@ -76,9 +109,12 @@ float Battery::getVoltageLimit()
   return this->voltageLimit;
 }
 
-
 void Battery::monitoringRoutine()
 {
-    // Da implementare la routine di controllo batteria
+    uint32_t rawVoltage = adc1_get_raw(BATTERY_VOLTAGE_PIN);
+    uint32_t rawCurrent = adc1_get_raw(BATTERY_CURRENT_PIN);
+
+    currentVoltage = esp_adc_cal_raw_to_voltage(rawVoltage, adc_chars);
+    currentCurrent = esp_adc_cal_raw_to_voltage(rawCurrent, adc_chars);
 }
 

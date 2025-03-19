@@ -18,6 +18,8 @@ class Battery
     float currentLimit = 0.0F;
     float voltageLimit = 0.0F;
 
+    int16_t Vref = 0;
+
   public:
 
     static Battery* getInstance();
@@ -34,7 +36,9 @@ class Battery
     float getNominalVoltage();
 
     void monitoringRoutine();
-    
+
+    void setParamsADC();
+    int getVref();
   };
 
 #endif 
