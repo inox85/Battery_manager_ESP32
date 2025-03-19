@@ -1,5 +1,6 @@
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
+#include <RunningMedian.h>
 #include "PINs.h"
 #include "Battery.h"
 #include "Params.h"
@@ -8,6 +9,10 @@
 Battery* Battery::instance = nullptr;
 
 esp_adc_cal_characteristics_t *adc_chars;
+
+RunningMedian AverageFilterVoltage(DIM_BUFFER_VOLTAGE);
+RunningMedian AverageFilterCurrent(DIM_BUFFER_CURRENT);
+
 
 Battery::Battery() 
 {
@@ -72,16 +77,16 @@ void Battery::setParamsADC()
   
   if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
       Serial.print("eFuse Vref: ");
-      Serial.println(Vref);
+      
   } 
   else if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
       Serial.print("Two Point calibration: ");
-      Serial.println(Vref);
   } 
   else {
       Serial.print("Default calibration: ");
-      Serial.println(Vref);
   }
+
+  Serial.println(Vref);
 
   // Configurazione dell'ADC
   adc1_config_width(ADC_WIDTH);
@@ -112,9 +117,20 @@ float Battery::getVoltageLimit()
 void Battery::monitoringRoutine()
 {
     uint32_t rawVoltage = adc1_get_raw(BATTERY_VOLTAGE_PIN);
+    AverageFilterVoltage.add(rawVoltage);
     uint32_t rawCurrent = adc1_get_raw(BATTERY_CURRENT_PIN);
+    AverageFilterCurrent.add(rawCurrent);
 
-    currentVoltage = esp_adc_cal_raw_to_voltage(rawVoltage, adc_chars);
-    currentCurrent = esp_adc_cal_raw_to_voltage(rawCurrent, adc_chars);
+    if(AverageFilterVoltage.isFull()) 
+    {
+      float medianVoltage = AverageFilterVoltage.getAverage(DIM_BUFFER_VOLTAGE - DISCARDS_VOLTAGE_VALUE);
+      currentVoltage = esp_adc_cal_raw_to_voltage(medianVoltage, adc_chars);
+    }
+
+    if(AverageFilterCurrent.isFull()) 
+    {
+      float medianCurrent = AverageFilterCurrent.getAverage(DIM_BUFFER_CURRENT - DISCARDS_CURRENT_VALUE);
+      currentCurrent = esp_adc_cal_raw_to_voltage(medianCurrent, adc_chars);
+    }
 }
 
