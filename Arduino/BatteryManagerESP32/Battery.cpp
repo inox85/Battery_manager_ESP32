@@ -123,13 +123,13 @@ void Battery::monitoringRoutine()
 
     if(AverageFilterVoltage.isFull()) 
     {
-      float medianVoltage = AverageFilterVoltage.getAverage(DIM_BUFFER_VOLTAGE - DISCARDS_VOLTAGE_VALUE);
+      float medianVoltage = AverageFilterVoltage.getMedianAverage(DISCARDS_VOLTAGE_VALUE);
       currentVoltage = esp_adc_cal_raw_to_voltage(medianVoltage, adc_chars);
     }
 
     if(AverageFilterCurrent.isFull()) 
     {
-      float medianCurrent = AverageFilterCurrent.getAverage(DIM_BUFFER_CURRENT - DISCARDS_CURRENT_VALUE);
+      float medianCurrent = AverageFilterCurrent.getMedianAverage(DISCARDS_CURRENT_VALUE);
       currentCurrent = esp_adc_cal_raw_to_voltage(medianCurrent, adc_chars);
     }
 }
