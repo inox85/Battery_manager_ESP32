@@ -9,6 +9,11 @@ class Settings {
     static Settings* instance;
     Preferences preferences;
     Settings();
+    
+    unsigned long lastCheckTime = 0;
+    unsigned long noClientSince = 0;
+    const unsigned long checkInterval = 5000;  // ogni quanto controllare (5 sec)
+    const unsigned long timeout = 60000;       // timeout di 1 minuto senza client
 
   public:
     static Settings* getInstance();

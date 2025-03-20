@@ -10,14 +10,15 @@ void setup()
 
   Battery::getInstance()->setParamsADC();
   
-  accessPoint.activate();
-
-  accessPoint.startServer();
+  accessPoint.setActive();
 
 }
 
 void loop() 
 {
+  
+  accessPoint.checkClientConnected();
+  
   Battery::getInstance()->monitoringRoutine();
-}
 
+}

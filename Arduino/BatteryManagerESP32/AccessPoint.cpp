@@ -5,6 +5,7 @@
 #include "Params.h"
 #include "WebPages.h"
 #include "Battery.h"
+#include "esp_wifi.h"
 
 AsyncWebServer server(80);
 
@@ -44,6 +45,56 @@ void AccessPoint::activate()
   dnsServer.start(DNS_PORT, "*", apIP); // Avvia il server DNS
 
 }
+
+void AccessPoint::shutDown()
+{ 
+  wifiActive = false;
+  WiFi.softAPdisconnect(true);
+}
+
+void AccessPoint::setActive()
+{
+  activate();
+  startServer();;
+  wifiActive = true;
+  noClientSince = 0;  // Resetta il timer dopo aver riacceso il l'AP e inizializzato il web server
+}
+
+void AccessPoint::setInactive()
+{
+  wifiActive = false;
+}
+
+void AccessPoint::checkClientConnected()
+{
+ unsigned long now = millis();
+
+  if (wifiActive && (now - lastCheckTime >= checkInterval)) {
+    lastCheckTime = now;
+    
+    wifi_sta_list_t wifi_sta_list;
+    esp_wifi_ap_get_sta_list(&wifi_sta_list);
+    int connected = wifi_sta_list.num;
+
+    Serial.print("Client connessi: ");
+    Serial.println(connected);
+
+    if (connected == 0) {
+      // Se nessuno è connesso, iniziamo il conteggio del timeout
+      if (noClientSince == 0) {
+        noClientSince = now;  // parte il timer
+      } else if (now - noClientSince >= timeout) {
+        Serial.println("Timeout raggiunto. Spengo il WiFi.");
+        shutDown();
+        wifiActive = false;
+      }
+    } else {
+      // Se c'è almeno un client, resetto il timer
+      noClientSince = 0;
+    }
+  }
+}
+
 
 
 void AccessPoint::startServer(){
@@ -139,4 +190,3 @@ void AccessPoint::startServer(){
   server.begin();
 
 }
-
