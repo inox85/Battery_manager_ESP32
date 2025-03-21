@@ -1,6 +1,3 @@
-#include <driver/adc.h>
-#include <esp_adc_cal.h>
-#include <RunningMedian.h>
 #include "PINs.h"
 #include "Battery.h"
 #include "Params.h"
@@ -8,11 +5,11 @@
 
 Battery* Battery::instance = nullptr;
 
-esp_adc_cal_characteristics_t *adc_chars;
+esp_adc_cal_characteristics_t *adc_chars = nullptr;
 
 RunningMedian AverageFilterVoltage(DIM_BUFFER_VOLTAGE);
 RunningMedian AverageFilterCurrent(DIM_BUFFER_CURRENT);
-
+RunningMedian AverageFilterExtVref(DIM_BUFFER_EXT_VREF);
 
 Battery::Battery() 
 {
@@ -30,7 +27,6 @@ Battery* Battery::getInstance() {
   return instance;
 }
 
-
 float Battery::getCurrentValue()
 {
   return currentCurrent;
@@ -39,6 +35,11 @@ float Battery::getCurrentValue()
 float Battery::getVoltageValue()
 {
   return currentVoltage;
+}
+
+float Battery::getExtVrefValue()
+{
+  return  currentVref;
 }
 
 void Battery::setVoltageLimit(float value)
@@ -74,27 +75,27 @@ void Battery::setParamsADC()
   esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH, 1100, adc_chars);
 
   Vref = adc_chars->vref;
-  
-  if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF) {
-      Serial.print("eFuse Vref: ");
-      
-  } 
-  else if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP) {
-      Serial.print("Two Point calibration Vref: ");
-  } 
-  else {
-      Serial.print("Default calibration Vref: ");
-  }
 
-  Serial.println(Vref);
+  switch (val_type) {
+    case ESP_ADC_CAL_VAL_EFUSE_VREF:
+     Serial.printf("eFuse, Vref: %u\n", Vref);
+    break;
+    case ESP_ADC_CAL_VAL_EFUSE_TP:
+     Serial.printf("Two Point, Vref: %u\n", Vref);
+    break;
+    default: 
+       Serial.printf("ADC not calibrated, Vref: %u\n", Vref);
+      break;
+  }
 
   // Configurazione dell'ADC
   adc1_config_width(ADC_WIDTH);
   adc1_config_channel_atten(BATTERY_VOLTAGE_PIN, ADC_ATTEN);
   adc1_config_channel_atten(BATTERY_CURRENT_PIN, ADC_ATTEN);
+  adc1_config_channel_atten(EXT_VREF_PIN, ADC_ATTEN);
 }
 
-int Battery::getVref()
+uint32_t Battery::getVref()
 {
   return this->Vref;
 }
@@ -114,23 +115,20 @@ float Battery::getVoltageLimit()
   return this->voltageLimit;
 }
 
-void Battery::monitoringRoutine()
+void Battery::analogMonitoring(bool voltage, bool current, bool extvref) 
 {
-    uint32_t rawVoltage = adc1_get_raw(BATTERY_VOLTAGE_PIN);
-    AverageFilterVoltage.add(rawVoltage);
-    uint32_t rawCurrent = adc1_get_raw(BATTERY_CURRENT_PIN);
-    AverageFilterCurrent.add(rawCurrent);
+   if(voltage) analog_Read(AverageFilterVoltage, BATTERY_VOLTAGE_PIN, currentVoltage, DISCARDS_VOLTAGE_VALUE);
+   if(current) analog_Read(AverageFilterCurrent, BATTERY_CURRENT_PIN, currentCurrent, DISCARDS_CURRENT_VALUE);
+   if(extvref) analog_Read(AverageFilterExtVref, EXT_VREF_PIN, currentVref, DISCARDS_EXT_VREF_VALUE);
+}
 
-    if(AverageFilterVoltage.isFull()) 
-    {
-      float medianVoltage = AverageFilterVoltage.getMedianAverage(DISCARDS_VOLTAGE_VALUE);
-      currentVoltage = esp_adc_cal_raw_to_voltage(medianVoltage, adc_chars);
-    }
-
-    if(AverageFilterCurrent.isFull()) 
-    {
-      float medianCurrent = AverageFilterCurrent.getMedianAverage(DISCARDS_CURRENT_VALUE);
-      currentCurrent = esp_adc_cal_raw_to_voltage(medianCurrent, adc_chars);
+void Battery::analog_Read(RunningMedian& filter, adc1_channel_t pin, float& output, int discardCount) 
+{
+    filter.add(adc1_get_raw(pin));
+    if (filter.isFull()) {
+        float median = filter.getMedianAverage(discardCount);
+        output = esp_adc_cal_raw_to_voltage(median, adc_chars);
     }
 }
+
 

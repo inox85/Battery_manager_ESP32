@@ -2,6 +2,9 @@
 #define BATTERY_H
 
 #include <Arduino.h>
+#include <driver/adc.h>
+#include <esp_adc_cal.h>
+#include <RunningMedian.h>
 
 class Battery 
 {
@@ -14,6 +17,7 @@ class Battery
 
     float currentVoltage = 0.0F;
     float currentCurrent = 0.0F;
+    float currentVref = 0.0F;
 
     float currentLimit = 0.0F;
     float voltageLimit = 0.0F;
@@ -26,6 +30,7 @@ class Battery
 
     float getCurrentValue();
     float getVoltageValue();
+    float getExtVrefValue();
 
     void setCurrentLimit(float value);
     void setVoltageLimit(float value);
@@ -35,10 +40,11 @@ class Battery
     void setNominalVoltage(float value);
     float getNominalVoltage();
 
-    void monitoringRoutine();
+    void analogMonitoring(bool voltage, bool current, bool extVref);
+    void analog_Read(RunningMedian& filter, adc1_channel_t pin, float& output, int discardCount);
 
     void setParamsADC();
-    int getVref();
+    uint32_t getVref();
   };
 
 #endif 

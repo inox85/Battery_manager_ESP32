@@ -19,6 +19,6 @@ void loop()
   
   accessPoint.checkClientConnected();
   
-  Battery::getInstance()->monitoringRoutine();
+  Battery::getInstance()->analogMonitoring(1,1,0);
 
 }
